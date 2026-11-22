@@ -1,0 +1,550 @@
+"blueprint":
+  "name": "Stiege – automatische Lichtübernahme"
+  "description": "Entitäten und KNX-Adressen bei der Einrichtung zuordnen."
+  "domain": "automation"
+  "source_url": "https://github.com/Oniel10/stiegensteuerung/blob/main/blueprints/automation/lichtuebernahme.yaml"
+  "homeassistant":
+    "min_version": "2024.10.0"
+  "input":
+    "knx_1":
+      "name": "KNX-Ein- oder Ausgang 1"
+      "selector":
+        "text": {}
+    "knx_2":
+      "name": "KNX-Ein- oder Ausgang 2"
+      "selector":
+        "text": {}
+    "knx_3":
+      "name": "KNX-Ein- oder Ausgang 3"
+      "selector":
+        "text": {}
+    "knx_4":
+      "name": "KNX-Ein- oder Ausgang 4"
+      "selector":
+        "text": {}
+    "knx_5":
+      "name": "KNX-Ein- oder Ausgang 5"
+      "selector":
+        "text": {}
+    "knx_6":
+      "name": "KNX-Ein- oder Ausgang 6"
+      "selector":
+        "text": {}
+    "dauerlicht_status":
+      "name": "Dauerlicht-Status"
+      "selector":
+        "entity":
+          "domain": "switch"
+    "input_select_stiege_steuerung":
+      "name": "input select stiege steuerung"
+      "selector":
+        "entity":
+          "domain": "input_select"
+    "input_boolean_stiege_notbetrieb_freigeben":
+      "name": "input boolean stiege notbetrieb freigeben"
+      "selector":
+        "entity":
+          "domain": "input_boolean"
+    "timer_finished":
+      "name": "timer finished"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "timer_stiege_notbetrieb_lichtzeit":
+      "name": "timer stiege notbetrieb lichtzeit"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "input_number_set_value":
+      "name": "input number set value"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "input_number_stiege_knx_helligkeit_oben":
+      "name": "input number stiege knx helligkeit oben"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "input_number_stiege_knx_helligkeit_unten":
+      "name": "input number stiege knx helligkeit unten"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "timer_cancel":
+      "name": "timer cancel"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "counter_reset":
+      "name": "counter reset"
+      "selector":
+        "entity":
+          "domain": "counter"
+    "counter_stiege_personen_geschatzt":
+      "name": "counter stiege personen geschatzt"
+      "selector":
+        "entity":
+          "domain": "counter"
+    "light_turn_on":
+      "name": "light turn on"
+      "selector":
+        "entity":
+          "domain": "light"
+    "stiegenlicht":
+      "name": "Stiegenlicht"
+      "selector":
+        "entity":
+          "domain": "light"
+    "timer_start":
+      "name": "timer start"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "input_number_stiege_maximales_dauerlicht":
+      "name": "input number stiege maximales dauerlicht"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "input_number_stiege_nachlauf_nachts":
+      "name": "input number stiege nachlauf nachts"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "input_number_stiege_nachlauf_tagsuber":
+      "name": "input number stiege nachlauf tagsuber"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "input_number_stiege_restlicht_nach_austritt":
+      "name": "input number stiege restlicht nach austritt"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "light_turn_off":
+      "name": "light turn off"
+      "selector":
+        "entity":
+          "domain": "light"
+    "input_number_stiege_notbetrieb_dunkelheit":
+      "name": "input number stiege notbetrieb dunkelheit"
+      "selector":
+        "entity":
+          "domain": "input_number"
+    "counter_increment":
+      "name": "counter increment"
+      "selector":
+        "entity":
+          "domain": "counter"
+    "counter_decrement":
+      "name": "counter decrement"
+      "selector":
+        "entity":
+          "domain": "counter"
+"description": "Bedient ausschließlich das Stiegenlicht, solange der HA-Notbetrieb freigegeben ist und das Loxone-Lebenszeichen fehlt."
+"triggers":
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_1
+    "group_value_read": false
+    "group_value_response": false
+    "outgoing": false
+    "id": "unten_ein"
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_2
+    "group_value_read": false
+    "group_value_response": false
+    "outgoing": false
+    "id": "unten_aus"
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_3
+    "group_value_read": false
+    "group_value_response": false
+    "outgoing": false
+    "id": "oben_ein"
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_4
+    "group_value_read": false
+    "group_value_response": false
+    "outgoing": false
+    "id": "oben_aus"
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_5
+    "group_value_read": false
+    "group_value_response": true
+    "outgoing": false
+    "id": "lux_unten"
+    "type": "illuminance"
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_6
+    "group_value_read": false
+    "group_value_response": true
+    "outgoing": false
+    "id": "lux_oben"
+    "type": "illuminance"
+  -
+    "trigger": "state"
+    "entity_id": !input dauerlicht_status
+    "to": "on"
+    "id": "dauer_an"
+  -
+    "trigger": "state"
+    "entity_id": !input dauerlicht_status
+    "to": "off"
+    "id": "dauer_aus"
+  -
+    "trigger": "state"
+    "entity_id": !input input_select_stiege_steuerung
+    "to": "HA-Notbetrieb aktiv"
+    "id": "uebernahme"
+  -
+    "trigger": "state"
+    "entity_id": !input input_select_stiege_steuerung
+    "to":
+      - "Loxone steuert"
+      - "Wartet auf Loxone"
+    "id": "rueckgabe"
+  -
+    "trigger": "state"
+    "entity_id": !input input_boolean_stiege_notbetrieb_freigeben
+    "to": "off"
+    "id": "sperre"
+  -
+    "trigger": "event"
+    "event_type": !input timer_finished
+    "event_data":
+      "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+    "id": "ablauf"
+"actions":
+  -
+    "choose":
+      -
+        "conditions":
+          -
+            "condition": "trigger"
+            "id":
+              - "lux_unten"
+              - "lux_oben"
+        "sequence":
+          -
+            "condition": "template"
+            "value_template": "{{ trigger.value is number and 0 <= trigger.value <= 670760 }}"
+          -
+            "action": !input input_number_set_value
+            "target":
+              "entity_id": "{{ lux_oben_entitaet if trigger.id == 'lux_oben' else lux_unten_entitaet }}"
+            "data":
+              "value": "{{ trigger.value }}"
+      -
+        "conditions":
+          -
+            "condition": "trigger"
+            "id":
+              - "rueckgabe"
+              - "sperre"
+        "sequence":
+          -
+            "action": !input timer_cancel
+            "target":
+              "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+          -
+            "action": !input counter_reset
+            "target":
+              "entity_id": !input counter_stiege_personen_geschatzt
+    "default":
+      -
+        "condition": "state"
+        "entity_id": !input input_boolean_stiege_notbetrieb_freigeben
+        "state": "on"
+      -
+        "condition": "state"
+        "entity_id": !input input_select_stiege_steuerung
+        "state": "HA-Notbetrieb aktiv"
+      -
+        "choose":
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "uebernahme"
+            "sequence":
+              -
+                "action": !input counter_reset
+                "target":
+                  "entity_id": !input counter_stiege_personen_geschatzt
+              -
+                "choose":
+                  -
+                    "conditions":
+                      -
+                        "condition": "state"
+                        "entity_id": !input dauerlicht_status
+                        "state": "on"
+                    "sequence":
+                      -
+                        "action": !input light_turn_on
+                        "target":
+                          "entity_id": !input stiegenlicht
+                      -
+                        "action": !input timer_start
+                        "target":
+                          "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                        "data":
+                          "duration": "{% set s = (states(input_number_stiege_maximales_dauerlicht) | int(8)) * 3600 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+                  -
+                    "conditions":
+                      -
+                        "condition": "state"
+                        "entity_id": !input stiegenlicht
+                        "state": "on"
+                    "sequence":
+                      -
+                        "if":
+                          -
+                            "condition": "time"
+                            "after": "22:00:00"
+                            "before": "06:00:00"
+                        "then":
+                          -
+                            "action": !input timer_start
+                            "target":
+                              "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                            "data":
+                              "duration": "{% set s = (states(input_number_stiege_nachlauf_nachts) | int(2)) * 60 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+                        "else":
+                          -
+                            "action": !input timer_start
+                            "target":
+                              "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                            "data":
+                              "duration": "{% set s = (states(input_number_stiege_nachlauf_tagsuber) | int(10)) * 60 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "dauer_an"
+            "sequence":
+              -
+                "action": !input light_turn_on
+                "target":
+                  "entity_id": !input stiegenlicht
+              -
+                "action": !input timer_start
+                "target":
+                  "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "data":
+                  "duration": "{% set s = (states(input_number_stiege_maximales_dauerlicht) | int(8)) * 3600 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "dauer_aus"
+              -
+                "condition": "state"
+                "entity_id": !input stiegenlicht
+                "state": "on"
+            "sequence":
+              -
+                "action": !input timer_start
+                "target":
+                  "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "data":
+                  "duration": "{% set s = (states(input_number_stiege_restlicht_nach_austritt) | int(30)) * 1 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "ablauf"
+              -
+                "condition": "state"
+                "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "state": "idle"
+            "sequence":
+              -
+                "action": !input light_turn_off
+                "target":
+                  "entity_id": !input stiegenlicht
+              -
+                "action": !input counter_reset
+                "target":
+                  "entity_id": !input counter_stiege_personen_geschatzt
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "oben_ein"
+              -
+                "condition": "template"
+                "value_template": "{{ trigger.payload in [1, true, [1]] }}"
+              -
+                "condition": "time"
+                "after": "22:00:00"
+                "before": "06:00:00"
+              -
+                "condition": "state"
+                "entity_id": !input dauerlicht_status
+                "state": "off"
+              -
+                "condition": "or"
+                "conditions":
+                  -
+                    "condition": "state"
+                    "entity_id": !input stiegenlicht
+                    "state": "on"
+                  -
+                    "condition": "numeric_state"
+                    "entity_id": !input input_number_stiege_knx_helligkeit_oben
+                    "above": -0.01
+                    "below": !input input_number_stiege_notbetrieb_dunkelheit
+                  -
+                    "condition": "numeric_state"
+                    "entity_id": !input input_number_stiege_knx_helligkeit_unten
+                    "above": -0.01
+                    "below": !input input_number_stiege_notbetrieb_dunkelheit
+            "sequence":
+              -
+                "action": !input light_turn_on
+                "target":
+                  "entity_id": !input stiegenlicht
+              -
+                "action": !input timer_start
+                "target":
+                  "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "data":
+                  "duration": "{% set s = (states(input_number_stiege_nachlauf_nachts) | int(2)) * 60 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id":
+                  - "oben_ein"
+                  - "unten_ein"
+              -
+                "condition": "template"
+                "value_template": "{{ trigger.payload in [1, true, [1]] }}"
+              -
+                "condition": "not"
+                "conditions":
+                  -
+                    "condition": "time"
+                    "after": "22:00:00"
+                    "before": "06:00:00"
+              -
+                "condition": "state"
+                "entity_id": !input dauerlicht_status
+                "state": "off"
+              -
+                "condition": "or"
+                "conditions":
+                  -
+                    "condition": "state"
+                    "entity_id": !input stiegenlicht
+                    "state": "on"
+                  -
+                    "condition": "numeric_state"
+                    "entity_id": !input input_number_stiege_knx_helligkeit_oben
+                    "above": -0.01
+                    "below": !input input_number_stiege_notbetrieb_dunkelheit
+                  -
+                    "condition": "numeric_state"
+                    "entity_id": !input input_number_stiege_knx_helligkeit_unten
+                    "above": -0.01
+                    "below": !input input_number_stiege_notbetrieb_dunkelheit
+            "sequence":
+              -
+                "action": !input counter_increment
+                "target":
+                  "entity_id": !input counter_stiege_personen_geschatzt
+              -
+                "action": !input light_turn_on
+                "target":
+                  "entity_id": !input stiegenlicht
+              -
+                "action": !input timer_start
+                "target":
+                  "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "data":
+                  "duration": "{% set s = (states(input_number_stiege_nachlauf_tagsuber) | int(10)) * 60 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id": "oben_aus"
+              -
+                "condition": "template"
+                "value_template": "{{ trigger.payload in [1, true, [1]] }}"
+              -
+                "condition": "time"
+                "after": "22:00:00"
+                "before": "06:00:00"
+              -
+                "condition": "state"
+                "entity_id": !input dauerlicht_status
+                "state": "off"
+              -
+                "condition": "state"
+                "entity_id": !input stiegenlicht
+                "state": "on"
+            "sequence":
+              -
+                "action": !input timer_start
+                "target":
+                  "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                "data":
+                  "duration": "{% set s = (states(input_number_stiege_restlicht_nach_austritt) | int(30)) * 1 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+          -
+            "conditions":
+              -
+                "condition": "trigger"
+                "id":
+                  - "oben_aus"
+                  - "unten_aus"
+              -
+                "condition": "template"
+                "value_template": "{{ trigger.payload in [1, true, [1]] }}"
+              -
+                "condition": "not"
+                "conditions":
+                  -
+                    "condition": "time"
+                    "after": "22:00:00"
+                    "before": "06:00:00"
+              -
+                "condition": "state"
+                "entity_id": !input dauerlicht_status
+                "state": "off"
+              -
+                "condition": "numeric_state"
+                "entity_id": !input counter_stiege_personen_geschatzt
+                "above": 0
+            "sequence":
+              -
+                "action": !input counter_decrement
+                "target":
+                  "entity_id": !input counter_stiege_personen_geschatzt
+              -
+                "if":
+                  -
+                    "condition": "numeric_state"
+                    "entity_id": !input counter_stiege_personen_geschatzt
+                    "below": 1
+                "then":
+                  -
+                    "action": !input timer_start
+                    "target":
+                      "entity_id": !input timer_stiege_notbetrieb_lichtzeit
+                    "data":
+                      "duration": "{% set s = (states(input_number_stiege_restlicht_nach_austritt) | int(30)) * 1 %}{{ '%02d:%02d:%02d' | format(s // 3600, (s % 3600) // 60, s % 60) }}"
+"mode": "queued"
+"max": 30
+"variables":
+  "lux_oben_entitaet": !input input_number_stiege_knx_helligkeit_oben
+  "lux_unten_entitaet": !input input_number_stiege_knx_helligkeit_unten
+  "input_number_stiege_maximales_dauerlicht": !input input_number_stiege_maximales_dauerlicht
+  "input_number_stiege_nachlauf_nachts": !input input_number_stiege_nachlauf_nachts
+  "input_number_stiege_nachlauf_tagsuber": !input input_number_stiege_nachlauf_tagsuber
+  "input_number_stiege_restlicht_nach_austritt": !input input_number_stiege_restlicht_nach_austritt
