@@ -1,0 +1,103 @@
+"blueprint":
+  "name": "Stiege – Loxone-Ausfall erkennen"
+  "description": "Entitäten und KNX-Adressen bei der Einrichtung zuordnen."
+  "domain": "automation"
+  "source_url": "https://github.com/Oniel10/stiegensteuerung/blob/main/blueprints/automation/ausfallerkennung.yaml"
+  "homeassistant":
+    "min_version": "2024.10.0"
+  "input":
+    "knx_1":
+      "name": "KNX-Ein- oder Ausgang 1"
+      "selector":
+        "text": {}
+    "timer_finished":
+      "name": "timer finished"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "timer_stiege_loxone_lebenszeichen":
+      "name": "timer stiege loxone lebenszeichen"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "timer_start":
+      "name": "timer start"
+      "selector":
+        "entity":
+          "domain": "timer"
+    "input_select_select_option":
+      "name": "input select select option"
+      "selector":
+        "entity":
+          "domain": "input_select"
+    "input_select_stiege_steuerung":
+      "name": "input select stiege steuerung"
+      "selector":
+        "entity":
+          "domain": "input_select"
+"description": "Überwacht das KNX-Lebenszeichen. Erst nach dem ersten echten Telegramm in dieser HA-Sitzung wird eine ausbleibende Meldung als Ausfall gewertet."
+"triggers":
+  -
+    "trigger": "knx.telegram"
+    "destination": !input knx_1
+    "group_value_read": false
+    "group_value_response": false
+    "outgoing": false
+    "id": "alive"
+  -
+    "trigger": "event"
+    "event_type": !input timer_finished
+    "event_data":
+      "entity_id": !input timer_stiege_loxone_lebenszeichen
+    "id": "dead"
+  -
+    "trigger": "homeassistant"
+    "event": "start"
+    "id": "start"
+"actions":
+  -
+    "choose":
+      -
+        "conditions":
+          -
+            "condition": "trigger"
+            "id": "alive"
+        "sequence":
+          -
+            "action": !input timer_start
+            "target":
+              "entity_id": !input timer_stiege_loxone_lebenszeichen
+          -
+            "action": !input input_select_select_option
+            "target":
+              "entity_id": !input input_select_stiege_steuerung
+            "data":
+              "option": "Loxone steuert"
+      -
+        "conditions":
+          -
+            "condition": "trigger"
+            "id": "dead"
+          -
+            "condition": "state"
+            "entity_id": !input input_select_stiege_steuerung
+            "state": "Loxone steuert"
+          -
+            "condition": "state"
+            "entity_id": !input timer_stiege_loxone_lebenszeichen
+            "state": "idle"
+        "sequence":
+          -
+            "action": !input input_select_select_option
+            "target":
+              "entity_id": !input input_select_stiege_steuerung
+            "data":
+              "option": "HA-Notbetrieb aktiv"
+    "default":
+      -
+        "action": !input input_select_select_option
+        "target":
+          "entity_id": !input input_select_stiege_steuerung
+        "data":
+          "option": "Wartet auf Loxone"
+"mode": "queued"
