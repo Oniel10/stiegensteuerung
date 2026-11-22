@@ -1,0 +1,157 @@
+blueprint:
+  name: Stiege – Licht im HA-Notbetrieb
+  description: Ein- und Ausgänge bei der Einrichtung zuordnen.
+  domain: automation
+  source_url: https://github.com/Oniel10/stiegensteuerung/blob/main/blueprints/automation/steuerung.yaml
+  homeassistant:
+    min_version: "2024.10.0"
+  input:
+    owner:
+      name: Freigabe HA-Notbetrieb
+      selector:
+        entity:
+          domain: input_boolean
+    up_entry:
+      name: Eintritt oben
+      selector:
+        entity:
+          domain: binary_sensor
+    down_entry:
+      name: Eintritt unten
+      selector:
+        entity:
+          domain: binary_sensor
+    up_exit:
+      name: Austritt oben
+      selector:
+        entity:
+          domain: binary_sensor
+    down_exit:
+      name: Austritt unten
+      selector:
+        entity:
+          domain: binary_sensor
+    up_lux:
+      name: Helligkeit oben
+      selector:
+        entity:
+          domain: sensor
+    down_lux:
+      name: Helligkeit unten
+      selector:
+        entity:
+          domain: sensor
+    manual:
+      name: Dauerlicht
+      selector:
+        entity:
+          domain: binary_sensor
+    lamp:
+      name: Stiegenlicht
+      selector:
+        entity:
+          domain: light
+    lux:
+      name: Dunkelheitsschwelle
+      default: 6
+      selector:
+        number: {min: 0, max: 100, unit_of_measurement: lx}
+    day:
+      name: Nachlauf tagsüber
+      default: 600
+      selector:
+        number: {min: 1, max: 1800, unit_of_measurement: s}
+    night:
+      name: Nachlauf nachts
+      default: 120
+      selector:
+        number: {min: 1, max: 1800, unit_of_measurement: s}
+    exit_delay:
+      name: Restlicht beim Austritt
+      default: 30
+      selector:
+        number: {min: 1, max: 300, unit_of_measurement: s}
+mode: restart
+variables:
+  lux_top: !input up_lux
+  lux_bottom: !input down_lux
+  threshold: !input lux
+  after_day: !input day
+  after_night: !input night
+  after_exit: !input exit_delay
+triggers:
+  - trigger: state
+    entity_id: !input up_entry
+    to: "on"
+    id: top
+  - trigger: state
+    entity_id: !input down_entry
+    to: "on"
+    id: bottom
+  - trigger: state
+    entity_id:
+      - !input up_exit
+      - !input down_exit
+    to: "on"
+    id: exit
+  - trigger: state
+    entity_id: !input manual
+    to: "on"
+    id: manual_on
+  - trigger: state
+    entity_id: !input manual
+    to: "off"
+    id: manual_off
+  - trigger: state
+    entity_id: !input owner
+    to: "off"
+    id: release
+conditions:
+  - condition: or
+    conditions:
+      - condition: trigger
+        id: release
+      - condition: and
+        conditions:
+          - condition: state
+            entity_id: !input owner
+            state: "on"
+          - condition: or
+            conditions:
+              - condition: trigger
+                id: [manual_on, manual_off]
+              - condition: and
+                conditions:
+                  - condition: state
+                    entity_id: !input manual
+                    state: "off"
+                  - condition: template
+                    value_template: >
+                      {{ (trigger.id != 'bottom' or 6 <= now().hour < 22)
+                         and (trigger.id == 'exit'
+                              or states(lux_top) | float(1000) < threshold
+                              or states(lux_bottom) | float(1000) < threshold) }}
+actions:
+  - if:
+      - condition: trigger
+        id: release
+    then:
+      - stop: Lichtsteuerung an Loxone zurückgegeben
+  - if:
+      - condition: trigger
+        id: [top, bottom, manual_on]
+    then:
+      - action: light.turn_on
+        target:
+          entity_id: !input lamp
+  - delay:
+      seconds: >
+        {{ 28800 if trigger.id == 'manual_on' else
+           after_exit if trigger.id in ['exit', 'manual_off'] else
+           after_day if 6 <= now().hour < 22 else after_night }}
+  - condition: state
+    entity_id: !input owner
+    state: "on"
+  - action: light.turn_off
+    target:
+      entity_id: !input lamp
