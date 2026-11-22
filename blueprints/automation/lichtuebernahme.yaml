@@ -30,8 +30,8 @@
       "name": "KNX-Ein- oder Ausgang 6"
       "selector":
         "text": {}
-    "switch_kg_treppenhaus_dauer_ein":
-      "name": "switch kg treppenhaus dauer ein"
+    "dauerlicht_status":
+      "name": "Dauerlicht-Status"
       "selector":
         "entity":
           "domain": "switch"
@@ -90,8 +90,8 @@
       "selector":
         "entity":
           "domain": "light"
-    "light_kg_treppenhaus_decke":
-      "name": "light kg treppenhaus decke"
+    "stiegenlicht":
+      "name": "Stiegenlicht"
       "selector":
         "entity":
           "domain": "light"
@@ -188,12 +188,12 @@
     "type": "illuminance"
   -
     "trigger": "state"
-    "entity_id": !input switch_kg_treppenhaus_dauer_ein
+    "entity_id": !input dauerlicht_status
     "to": "on"
     "id": "dauer_an"
   -
     "trigger": "state"
-    "entity_id": !input switch_kg_treppenhaus_dauer_ein
+    "entity_id": !input dauerlicht_status
     "to": "off"
     "id": "dauer_aus"
   -
@@ -282,13 +282,13 @@
                     "conditions":
                       -
                         "condition": "state"
-                        "entity_id": !input switch_kg_treppenhaus_dauer_ein
+                        "entity_id": !input dauerlicht_status
                         "state": "on"
                     "sequence":
                       -
                         "action": !input light_turn_on
                         "target":
-                          "entity_id": !input light_kg_treppenhaus_decke
+                          "entity_id": !input stiegenlicht
                       -
                         "action": !input timer_start
                         "target":
@@ -299,7 +299,7 @@
                     "conditions":
                       -
                         "condition": "state"
-                        "entity_id": !input light_kg_treppenhaus_decke
+                        "entity_id": !input stiegenlicht
                         "state": "on"
                     "sequence":
                       -
@@ -331,7 +331,7 @@
               -
                 "action": !input light_turn_on
                 "target":
-                  "entity_id": !input light_kg_treppenhaus_decke
+                  "entity_id": !input stiegenlicht
               -
                 "action": !input timer_start
                 "target":
@@ -345,7 +345,7 @@
                 "id": "dauer_aus"
               -
                 "condition": "state"
-                "entity_id": !input light_kg_treppenhaus_decke
+                "entity_id": !input stiegenlicht
                 "state": "on"
             "sequence":
               -
@@ -367,7 +367,7 @@
               -
                 "action": !input light_turn_off
                 "target":
-                  "entity_id": !input light_kg_treppenhaus_decke
+                  "entity_id": !input stiegenlicht
               -
                 "action": !input counter_reset
                 "target":
@@ -386,14 +386,14 @@
                 "before": "06:00:00"
               -
                 "condition": "state"
-                "entity_id": !input switch_kg_treppenhaus_dauer_ein
+                "entity_id": !input dauerlicht_status
                 "state": "off"
               -
                 "condition": "or"
                 "conditions":
                   -
                     "condition": "state"
-                    "entity_id": !input light_kg_treppenhaus_decke
+                    "entity_id": !input stiegenlicht
                     "state": "on"
                   -
                     "condition": "numeric_state"
@@ -409,7 +409,7 @@
               -
                 "action": !input light_turn_on
                 "target":
-                  "entity_id": !input light_kg_treppenhaus_decke
+                  "entity_id": !input stiegenlicht
               -
                 "action": !input timer_start
                 "target":
@@ -435,14 +435,14 @@
                     "before": "06:00:00"
               -
                 "condition": "state"
-                "entity_id": !input switch_kg_treppenhaus_dauer_ein
+                "entity_id": !input dauerlicht_status
                 "state": "off"
               -
                 "condition": "or"
                 "conditions":
                   -
                     "condition": "state"
-                    "entity_id": !input light_kg_treppenhaus_decke
+                    "entity_id": !input stiegenlicht
                     "state": "on"
                   -
                     "condition": "numeric_state"
@@ -462,7 +462,7 @@
               -
                 "action": !input light_turn_on
                 "target":
-                  "entity_id": !input light_kg_treppenhaus_decke
+                  "entity_id": !input stiegenlicht
               -
                 "action": !input timer_start
                 "target":
@@ -483,11 +483,11 @@
                 "before": "06:00:00"
               -
                 "condition": "state"
-                "entity_id": !input switch_kg_treppenhaus_dauer_ein
+                "entity_id": !input dauerlicht_status
                 "state": "off"
               -
                 "condition": "state"
-                "entity_id": !input light_kg_treppenhaus_decke
+                "entity_id": !input stiegenlicht
                 "state": "on"
             "sequence":
               -
@@ -515,7 +515,7 @@
                     "before": "06:00:00"
               -
                 "condition": "state"
-                "entity_id": !input switch_kg_treppenhaus_dauer_ein
+                "entity_id": !input dauerlicht_status
                 "state": "off"
               -
                 "condition": "numeric_state"
