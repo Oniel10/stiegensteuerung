@@ -1,8 +1,11 @@
 """Install bundled Home Assistant blueprints, preserving instance inputs."""
+import logging
 from pathlib import Path
 
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant
+
+_LOGGER = logging.getLogger(__name__)
 
 BLUEPRINTS = (("automation","lichtuebernahme","stiegensteuerung-lichtuebernahme"),("automation","ausfallerkennung","stiegensteuerung-ausfallerkennung"))
 
@@ -13,8 +16,15 @@ def _install(root: Path) -> set[str]:
     for domain, source, name in BLUEPRINTS:
         data = (bundle / domain / f"{source}.yaml").read_bytes()
         target = root / "blueprints" / domain / "oniel10" / f"{name}.yaml"
-        if target.exists() and target.read_bytes() == data:
-            continue
+        if target.exists():
+            previous = target.read_bytes()
+            if previous == data:
+                continue
+            if source == "lichtuebernahme" and any(
+                marker in previous for marker in (b"switch_kg_", b"light_kg_")
+            ):
+                _LOGGER.warning("Stair blueprint uses legacy inputs; migrate its instance before replacing the file")
+                continue
         target.parent.mkdir(parents=True, exist_ok=True)
         temporary = target.with_suffix(".yaml.tmp")
         temporary.write_bytes(data)
